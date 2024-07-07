@@ -1,0 +1,97 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Multi Stopwatch App',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: MultiStopwatchPage(),
+    );
+  }
+}
+
+class MultiStopwatchPage extends StatefulWidget {
+  @override
+  _MultiStopwatchPageState createState() => _MultiStopwatchPageState();
+}
+
+class _MultiStopwatchPageState extends State<MultiStopwatchPage> {
+  List<Stopwatch> _stopwatches = [];
+  List<Timer> _timers = [];
+
+  @override
+  void dispose() {
+    _timers.forEach((timer) => timer.cancel());
+    super.dispose();
+  }
+
+  void _addStopwatch() {
+    Stopwatch stopwatch = Stopwatch();
+    _stopwatches.add(stopwatch);
+    Timer timer = Timer.periodic(Duration(seconds: 1), (Timer t) {
+      setState(() {});
+    });
+    _timers.add(timer);
+  }
+
+  String _formatTime(Stopwatch stopwatch) {
+    var milliseconds = stopwatch.elapsedMilliseconds;
+    var seconds = (milliseconds / 1000).truncate();
+    var minutes = (seconds / 60).truncate();
+    var hours = (minutes / 60).truncate();
+
+    String hoursStr = (hours % 60).toString().padLeft(2, '0');
+    String minutesStr = (minutes % 60).toString().padLeft(2, '0');
+    String secondsStr = (seconds % 60).toString().padLeft(2, '0');
+
+    return "$hoursStr:$minutesStr:$secondsStr";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Stopwatches'),
+      ),
+      body: ListView.builder(
+        itemCount: _stopwatches.length,
+        itemBuilder: (context, index) {
+          var stopwatch = _stopwatches[index];
+          return ListTile(
+            title: Text(_formatTime(stopwatch)),
+            leading: IconButton(
+              icon: Icon(stopwatch.isRunning ? Icons.pause : Icons.play_arrow),
+              onPressed: () {
+                setState(() {
+                  if (stopwatch.isRunning) {
+                    stopwatch.stop();
+                  } else {
+                    stopwatch.start();
+                  }
+                });
+              },
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: () {
+                setState(() {
+                  stopwatch.reset();
+                });
+              },
+            ),
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        onPressed: _addStopwatch,
+      ),
+    );
+  }
+}
